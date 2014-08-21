@@ -2,6 +2,18 @@ from argparse import ArgumentParser
 from os import environ
 from yaml import safe_dump
 
+
+def env2yaml(env, env_key='_env', anchor_template='_env_%s'):
+    """
+    Convert an environment into a yaml string
+    """
+    lines = ['%s:' % env_key]
+    for key in env:
+        value = safe_dump(env[key], indent=2, default_style='"')[:-1]
+        lines.append('  %s: &%s %s' % (key, anchor_template % key, value))
+    return '\n'.join(lines)
+
+
 def main():
     """
     Emit the current environment as a YAML structure
@@ -18,8 +30,6 @@ def main():
     # Parse arguments
     args = parser.parse_args()
 
-    # Read the environment
-    print('%s:' % args.key)
-    for key in environ:
-        value = safe_dump(environ[key], indent=2, default_style='"')[:-1]
-        print('  %s: &%s %s' % (key, args.anchor_template % key, value))
+    # Render the environment
+    print(env2yaml(environ, env_key=args.key,
+                   anchor_template=args.anchor_template))
